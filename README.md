@@ -1,7 +1,4 @@
 # JetpackCatwork
 
-This repository contains two projects that work in tandem, Jetpack and
-CatworkRedux, the READMEs for each project is contained in their respective
-folders.
-
-The loaded model is built internally following 
+Contains the sourcecode for Jetpack and CatworkRedux. This is project is a mirror
+and does not accept contributions directly.
