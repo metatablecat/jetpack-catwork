@@ -149,11 +149,11 @@ function ObjectHandle.Get<T>(self: ObjectHandle<T>): T
 end
 
 export function RegisterInterfaceBinding<U, T...>(
-	fn: (T...) -> (U, InitFn<U>) -> ()
+	fn: (T...) -> (InitFn<U>) -> ()
 ): (T...) -> ObjectHandle<U>
 	return function(...)
-		const object, ifn = fn(...)
-		const handle = newObjectHandle(object)
+		const ifn = fn(...)
+		const handle = newObjectHandle()
 		BoundObjects[handle] = ifn
 		return handle
 	end
@@ -161,7 +161,7 @@ end
 
 export const Service = RegisterInterfaceBinding<<boolean>>(function(serviceFn: (...unknown) -> ())
 	assert(type(serviceFn) == "function", "serviceFn must be a function")
-	return nil, function(module, objectResolve, ...)
+	return function(module, objectResolve, ...)
 		serviceFn(...)
 		objectResolve(true)
 	end
