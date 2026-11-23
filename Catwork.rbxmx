@@ -248,14 +248,6 @@ const function shallowGetModules(root: Instance)
 	return modules
 end
 
-const LoaderFolder = script:FindFirstChild("Interfaces")
-
-export const COMMON_INIT =
-	LoaderFolder
-	and LoaderFolder:FindFirstChild("CatworkServiceInterface")
-	and require(LoaderFolder.CatworkServiceInterface).MSG_INIT
-	or newproxy(false)
-
 const function loadUserModule(module: ModuleScript)
 	local ok, export: {[string]: any} = coroutine.resume(coroutine.create(require), module)
 	if not ok then
