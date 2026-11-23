@@ -1,0 +1,19 @@
+{
+	"luau-lsp.platform.type": "roblox",
+	"luau-lsp.fflags.enableNewSolver": true,
+	"luau-lsp.sourcemap.autogenerate": false,
+	"editor.tabSize": 4,
+	"editor.insertSpaces": false,
+
+	"[luau]": {"editor.rulers": [120]},
+
+	"[markdown]": {
+		"editor.rulers": [80],
+		"editor.tabSize": 2,
+		"editor.insertSpaces": true
+	},
+	"luau-lsp.sourcemap.enabled": false,
+	"luau-lsp.fflags.override": {
+		"LuauExportValueSyntax": "true"
+	}
+}

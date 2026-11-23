@@ -1,0 +1,469 @@
+<roblox version="4">
+	<Item class="Folder" referent="0">
+		<Properties>
+			<string name="Name">Jetpack</string>
+		</Properties>
+		<Item class="Folder" referent="1">
+			<Properties>
+				<string name="Name">.jpki</string>
+			</Properties>
+			<Item class="Script" referent="2">
+				<Properties>
+					<ProtectedString name="Source"><![CDATA[--[[
+                     $$\                                   $$\       
+                     $$ |                                  $$ |      
+      $$\  $$$$$$\ $$$$$$\    $$$$$$\   $$$$$$\   $$$$$$$\ $$ |  $$\ 
+      \__|$$  __$$\\_$$  _|  $$  __$$\  \____$$\ $$  _____|$$ | $$  |
+      $$\ $$$$$$$$ | $$ |    $$ /  $$ | $$$$$$$ |$$ /      $$$$$$  / 
+      $$ |$$   ____| $$ |$$\ $$ |  $$ |$$  __$$ |$$ |      $$  _$$<  
+      $$ |\$$$$$$$\  \$$$$  |$$$$$$$  |\$$$$$$$ |\$$$$$$$\ $$ | \$$\ 
+      $$ | \_______|  \____/ $$  ____/  \_______| \_______|\__|  \__|
+$$\   $$ |                   $$ |                                    
+\$$$$$$  |                   $$ |                                    
+ \______/                    \__|                                    
+ 
+JETPACK PACKAGE DEPLOYER - CATWORK DEPLOYER
+VERSION 1.0.0
+
+metatablecatgames 2026
+
+LICENSED UNDER AN APACHE 2.0 LICENSE
+--]]
+
+const ReplicatedFirst = game:GetService("ReplicatedFirst")
+const ReplicatedStorage = game:GetService("ReplicatedStorage")
+const ServerScriptService = game:GetService("ServerScriptService")
+const JPKI = script.Parent
+const Package = JPKI.Parent
+const Packages = Package.Packages
+const launcher = script:GetAttribute("Runtime"):Wait()
+const clientBooter = script:GetAttribute("ClientLoader"):Wait()
+const serverBooter = script:GetAttribute("ServerLoader"):Wait()
+
+if Package.Parent ~= ServerScriptService then
+	warn("Package is not parented to ServerScriptService. This may cause issues with code security.")
+end
+
+type PackageContext = {
+	Name: string,
+	Instance: Instance,
+	Context: "SharedFirst" | "Shared" | "Server",
+	
+	ConsumerCounters: {
+		SharedFirst: number,
+		Shared: number,
+		Server: number,
+	},
+	
+	ContainsServices: false,
+	References: {[ObjectValue]: PackageContext}
+}
+
+const contexts: {[Instance]: PackageContext} = {}
+
+const function makeContext(folder: Instance, forceContext: string?)
+	return {
+		Name = folder.Parent.Name,
+		Instance = folder,
+		Context = forceContext or folder.Name,
+		ConsumerCounters = {
+			SharedFirst = 0,
+			Shared = 0,
+			Server = 0,
+		},
+		ContainsServices = folder:FindFirstChild("Services") ~= nil,
+		References = {}
+	}
+end
+
+for _, contextFolder in Packages:QueryDescendants(">Instance>#Server, >Instance>#Shared, >Instance>#SharedFirst") do
+	contexts[contextFolder] = makeContext(contextFolder)
+end
+
+const function findContext(obj): PackageContext?
+	local la1, la2
+
+	while true do
+		la1 = obj and obj.Parent
+		la2 = la1 and la1.Parent
+		if not (obj or la1 or la2) then return nil end
+		if la2 == Packages then return contexts[obj] end
+		obj = obj.Parent
+	end
+end
+
+const function INVALID_SERVERCLIENT_LINK(ref: PackageContext, context: PackageContext, ov: ObjectValue)
+	warn(`Reference {ov:GetFullName()} is trying to link {context.Context} package {context.Name} to Server package {ref.Name}, which would be inaccessible to client code.`)
+end
+
+for folder, context in contexts do
+	for _, refov in context.Instance:QueryDescendants(">#References>ObjectValue") do
+		const refi = refov.Value
+		if not refi then continue end
+		if refi == launcher then continue end
+		
+		const refcontext = findContext(refi)
+		if not refcontext then continue end
+		
+		if refcontext.Context == "Server" and context.Context ~= "Server" then
+			INVALID_SERVERCLIENT_LINK(refcontext, context, refov)
+			continue
+		end
+		
+		context.References[refov] = refcontext
+		refcontext.ConsumerCounters[context.Context] += 1
+	end
+end
+
+-- now, we can build the destination folders for contexts based on their consumer counters
+const serverStoragePackages = {}
+const replicatedStoragePackages = {}
+const replicatedFirstPackages = {}
+
+for _, context in contexts do
+	if context.Context == "Server" then
+		-- can only be linked to by other server obejects
+		assert(context.ConsumerCounters.SharedFirst == 0, "Server packages cannot have SharedFirst consumers")
+		assert(context.ConsumerCounters.Shared == 0, "Server packages cannot have Shared consumers")
+		
+		table.insert(serverStoragePackages, context)
+	else
+		if context.ConsumerCounters.SharedFirst > 0 then
+			table.insert(replicatedFirstPackages, context)
+		else
+			table.insert(if context.Context == "SharedFirst" then replicatedFirstPackages else replicatedStoragePackages, context)
+		end
+	end
+end
+
+const function installContexts(parent, contexts: {PackageContext}, useScript)
+	const folder = Instance.new("Folder")
+	folder.Name = `JETPACK_{parent.Name}`
+	
+	const packages = Instance.new("Folder")
+	packages.Name = "Packages"
+	
+	for _, context in contexts do
+		const i = context.Instance
+		i.Name = context.Name
+		i.Parent = packages
+	end
+	
+	packages.Parent = folder
+	
+	const scrip = useScript:Clone()
+	scrip.Parent = folder
+	scrip.Enabled = true
+	
+	folder.Parent = parent
+end
+
+const InterfaceFolder = Package:FindFirstChild("Interfaces")
+if InterfaceFolder then
+	InterfaceFolder.Name = "CATWORK_Interfaces"
+	InterfaceFolder.Parent = ReplicatedFirst
+end
+launcher.Parent = ReplicatedFirst
+installContexts(ServerScriptService, serverStoragePackages, serverBooter)
+installContexts(ReplicatedStorage, replicatedStoragePackages, clientBooter)
+installContexts(ReplicatedFirst, replicatedFirstPackages, clientBooter)
+Package:Destroy()]]></ProtectedString>
+					<bool name="Disabled">false</bool>
+					<Ref name="__attrRef_ClientLoader">clientLoader</Ref>
+					<Ref name="__attrRef_Runtime">runtime</Ref>
+					<Ref name="__attrRef_ServerLoader">serverLoader</Ref>
+					<string name="Name">jetpack</string>
+				</Properties>
+			</Item>
+			<Item class="Script" referent="serverLoader">
+				<Properties>
+					<ProtectedString name="Source"><![CDATA[const ReplicatedFirst = game:GetService("ReplicatedFirst")
+require(ReplicatedFirst.Catwork).__CATWORK_INTERNAL_INIT(script.Parent.Packages, ReplicatedFirst:FindFirstChild("CATWORK_Interfaces"))]]></ProtectedString>
+					<bool name="Disabled">true</bool>
+					<token name="RunContext">1</token>
+					<string name="Name">loadServer</string>
+				</Properties>
+			</Item>
+			<Item class="Script" referent="clientLoader">
+				<Properties>
+					<ProtectedString name="Source"><![CDATA[const ReplicatedFirst = game:GetService("ReplicatedFirst")
+const Players = game:GetService("Players")
+require(ReplicatedFirst.Catwork).__CATWORK_INTERNAL_INIT(script.Parent.Packages, ReplicatedFirst:FindFirstChild("CATWORK_Interfaces"), Players.LocalPlayer)]]></ProtectedString>
+					<bool name="Disabled">true</bool>
+					<token name="RunContext">2</token>
+					<string name="Name">loadClient</string>
+				</Properties>
+			</Item>
+			<Item class="ModuleScript" referent="runtime">
+				<Properties>
+					<Content name="LinkedSource"><null></null></Content>
+					<ProtectedString name="Source"><![CDATA[--[[
+CATWORK LAUNCHER
+VERSION 2.0.0
+
+metatablecatgames 2024, 2026-
+
+LICENSED UNDER AN APACHE 2.0 LICENSE
+--]]
+
+const BoundObjects: {[ObjectHandle<unknown>]: InitFn<unknown>} = {}
+const HandleState: setmetatable<{[ObjectHandle<unknown>]: {
+	captured: unknown,
+	waiting: {thread}
+}}, {__mode: "k"}> = setmetatable({}, {__mode = "k"})
+const ObjectHandle = {}; ObjectHandle.__index = ObjectHandle
+
+type InitFn<T> = (
+	module: ModuleScript,
+	sethandle: (T) -> (),
+	...unknown
+) -> ()
+
+export type ObjectHandle<T> = {
+	Get: (ObjectHandle<T>) -> T,
+	Wait: (ObjectHandle<T>) -> T
+}
+
+const function checkReferenceHealth(packageRoot: Instance)
+	for _, ref in packageRoot:QueryDescendants(">#Packages>Instance>>#References>ObjectValue") do
+		if ref:GetAttribute("IgnoreReference") == true then continue end
+		const val = ref.Value :: Instance
+
+		if not val then warn(`Module reference {ref:GetFullName()} is unlinked. Check that the reference is set and is valid.`) end
+	end
+end
+
+const function shallowGetModules(root: Instance)
+	const modules = {}
+	for _, obj in root:QueryDescendants(">Instance>#Services>Instance") do
+		if obj:IsA("ModuleScript") then
+			table.insert(modules, obj)
+		else
+			for _, shallow in obj:QueryDescendants(">ModuleScript") do
+				table.insert(modules, shallow)
+			end
+		end
+	end
+	
+	return modules
+end
+
+const LoaderFolder = script:FindFirstChild("Interfaces")
+
+export const COMMON_INIT =
+	LoaderFolder
+	and LoaderFolder:FindFirstChild("CatworkServiceInterface")
+	and require(LoaderFolder.CatworkServiceInterface).MSG_INIT
+	or newproxy(false)
+
+const function loadUserModule(module: ModuleScript)
+	local ok, export: {[string]: any} = coroutine.resume(coroutine.create(require), module)
+	if not ok then
+		warn(`Module {module} experienced error while loading.`)
+		return false	
+	end
+	
+	if not export then
+		warn(`{module} cannot yield on require.`)
+		return false	
+	end
+	
+	if type(export) ~= "table" or not table.isfrozen(export) then
+		warn(`Module {module} appears to not be using the Luau export system`)
+		return false	
+	end
+	
+	return true, export
+end
+
+const function loadModules(modules): {[ModuleScript]: {[string]: unknown}}
+	const loaded = {}
+	for _, module in modules do
+		const ok, export = loadUserModule(module)
+		if not ok then continue end
+		loaded[module] = export
+	end
+	return loaded
+end
+
+const function objectResolver<T>(linker: ObjectHandle<T>): (T) -> ()
+	const capture = HandleState[linker]
+	return function(T)
+		const oldCapture = capture.captured
+		capture.captured = T
+		if oldCapture then return end
+		
+		for _, thread in capture.waiting do
+			task.defer(thread, T)
+		end
+		capture.waiting = nil
+	end
+end
+
+const function loadModuleState(
+	export: unknown,
+	module: ModuleScript,
+	...
+)
+	for symbol, linker in export do
+		const linkfn = BoundObjects[linker]
+		if linkfn then
+			BoundObjects[linker] = nil
+			task.defer(linkfn, module, objectResolver(linker), ...)
+		end
+	end
+end
+
+export function __CATWORK_INTERNAL_INIT(
+	packageRoot: Instance,
+	interfaceRoot: Instance?,
+	...
+)
+	checkReferenceHealth(packageRoot)
+	if interfaceRoot then
+		for _, interface in interfaceRoot:QueryDescendants(">ModuleScript") do require(interface) end
+	end
+	
+	-- we need to load the modules first to ensure we've got handles loaded for every module
+	const modules = loadModules(shallowGetModules(packageRoot))
+	for module, export in modules do loadModuleState(export, module, ...) end
+end
+
+const function newObjectHandle(object)
+	const handle = setmetatable({}, ObjectHandle)
+	table.freeze(handle)
+	
+	HandleState[handle] = {
+		captured = nil,
+		waiting = {}
+	}
+	
+	return handle
+end
+
+function ObjectHandle.Wait<T>(self: ObjectHandle<T>): T
+	local captureInfo = HandleState[self]
+	if not captureInfo.captured then
+		local thread = coroutine.running()
+		table.insert(captureInfo.waiting, thread)
+		return coroutine.yield()
+	end
+	return captureInfo.captured
+end
+
+function ObjectHandle.Get<T>(self: ObjectHandle<T>): T
+	return HandleState[self].captured
+end
+
+export function RegisterInterfaceBinding<U, T...>(
+	fn: (T...) -> (U, InitFn<U>) -> ()
+): (T...) -> ObjectHandle<U>
+	return function(...)
+		const object, ifn = fn(...)
+		const handle = newObjectHandle(object)
+		BoundObjects[handle] = ifn
+		return handle
+	end
+end
+
+export const Service = RegisterInterfaceBinding<<boolean>>(function(serviceFn: (...unknown) -> ())
+	assert(type(serviceFn) == "function", "serviceFn must be a function")
+	return nil, function(module, objectResolve, ...)
+		serviceFn(...)
+		objectResolve(true)
+	end
+end)]]></ProtectedString>
+					<string name="Name">Catwork</string>
+				</Properties>
+			</Item>
+		</Item>
+		<Item class="Folder" referent="RBX327c6200700042e3a83ed89b39c9ed98">
+			<Properties>
+				<string name="Name">Interfaces</string>
+			</Properties>
+			<Item class="ObjectValue" referent="RBX2e40bafdea34493bb4637f8412c147cd">
+				<Properties>
+					<Ref name="Value">runtime</Ref>
+					<string name="Name">Catwork</string>
+				</Properties>
+			</Item>
+		</Item>
+		<Item class="Folder" referent="RBX3cfaa516dd6b487ca59a72677dbb0153">
+			<Properties>
+				<string name="Name">Packages</string>
+			</Properties>
+			<Item class="Folder" referent="RBX875c4caccedd49919f55d0b07c2d1451">
+				<Properties>
+					<string name="Name">NewGame</string>
+				</Properties>
+				<Item class="Folder" referent="RBX55fe1e1442ff4ff39026704a9c797d2f">
+					<Properties>
+						<string name="Name">Server</string>
+					</Properties>
+					<Item class="Folder" referent="RBX8c6408d1fb024f2a8a294fda5fb696bc">
+						<Properties>
+							<string name="Name">References</string>
+						</Properties>
+						<Item class="ObjectValue" referent="RBXb3b15ce1e06143048fd05c8f57ef1e57">
+							<Properties>
+								<Ref name="Value">runtime</Ref>
+								<string name="Name">Catwork</string>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Folder" referent="RBX015d039a6bc4401985b75118f2211eca">
+						<Properties>
+							<string name="Name">Services</string>
+						</Properties>
+						<Item class="ModuleScript" referent="RBXbfac965e0ee9421e88301c534bf7ddbe">
+							<Properties>
+								<ProtectedString name="Source"><![CDATA[const Catwork = require(script.Parent.Parent.References.Catwork.Value)
+
+export const Service = Catwork.Service(function()
+	print("Hello Catwork!")
+end)
+]]></ProtectedString>
+								<string name="Name">Service1</string>
+							</Properties>
+						</Item>
+					</Item>
+				</Item>
+				<Item class="Folder" referent="RBXd6f5d62dcf014cf797e3ee97cf809a97">
+					<Properties>
+						<string name="Name">Shared</string>
+					</Properties>
+					<Item class="Folder" referent="RBX7e714e3c73284a99b7636e5a47d25d5b">
+						<Properties>
+							<string name="Name">Services</string>
+						</Properties>
+						<Item class="ModuleScript" referent="RBX8d048a31cbd1494e9a50dfaf676d4882">
+							<Properties>
+								<ProtectedString name="Source"><![CDATA[const Catwork = require(script.Parent.Parent.References.Catwork.Value)
+
+export const Service = Catwork.Service(function()
+	print("Hello Catwork!")
+end)
+]]></ProtectedString>
+								<string name="Name">Service1</string>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Folder" referent="RBX5416e32393d449b790c9a9a354f9e679">
+						<Properties>
+							<string name="Name">References</string>
+						</Properties>
+						<Item class="ObjectValue" referent="RBXc147e4d7ac464dca84d7511b7c664aa1">
+							<Properties>
+								<Ref name="Value">runtime</Ref>
+								<string name="Name">Catwork</string>
+							</Properties>
+						</Item>
+					</Item>
+				</Item>
+			</Item>
+		</Item>
+	</Item>
+	<SharedStrings>
+		<SharedString md5="yuZpQdnvvUBOTYh1jqZ2cA=="></SharedString>
+	</SharedStrings>
+</roblox>

@@ -1,0 +1,123 @@
+<roblox version="4">
+	<Item class="Folder" referent="0">
+		<Properties>
+			<string name="Name">Jetpack</string>
+		</Properties>
+		<Item class="Folder" referent="1">
+			<Properties>
+				<string name="Name">.jpki</string>
+			</Properties>
+			<Item class="Script" referent="2">
+				<Properties>
+					<ProtectedString name="Source"><![CDATA[{launcherSrc}]]></ProtectedString>
+					<bool name="Disabled">false</bool>
+					<Ref name="__attrRef_ClientLoader">clientLoader</Ref>
+					<Ref name="__attrRef_Runtime">runtime</Ref>
+					<Ref name="__attrRef_ServerLoader">serverLoader</Ref>
+					<string name="Name">jetpack</string>
+				</Properties>
+			</Item>
+			<Item class="Script" referent="serverLoader">
+				<Properties>
+					<ProtectedString name="Source"><![CDATA[{serverLoader}]]></ProtectedString>
+					<bool name="Disabled">true</bool>
+					<token name="RunContext">1</token>
+					<string name="Name">loadServer</string>
+				</Properties>
+			</Item>
+			<Item class="Script" referent="clientLoader">
+				<Properties>
+					<ProtectedString name="Source"><![CDATA[{clientLoader}]]></ProtectedString>
+					<bool name="Disabled">true</bool>
+					<token name="RunContext">2</token>
+					<string name="Name">loadClient</string>
+				</Properties>
+			</Item>
+			<Item class="ModuleScript" referent="runtime">
+				<Properties>
+					<Content name="LinkedSource"><null></null></Content>
+					<ProtectedString name="Source"><![CDATA[{runtime}]]></ProtectedString>
+					<string name="Name">Catwork</string>
+				</Properties>
+			</Item>
+		</Item>
+		<Item class="Folder" referent="RBX327c6200700042e3a83ed89b39c9ed98">
+			<Properties>
+				<string name="Name">Interfaces</string>
+			</Properties>
+			<Item class="ObjectValue" referent="RBX2e40bafdea34493bb4637f8412c147cd">
+				<Properties>
+					<Ref name="Value">runtime</Ref>
+					<string name="Name">Catwork</string>
+				</Properties>
+			</Item>
+		</Item>
+		<Item class="Folder" referent="RBX3cfaa516dd6b487ca59a72677dbb0153">
+			<Properties>
+				<string name="Name">Packages</string>
+			</Properties>
+			<Item class="Folder" referent="RBX875c4caccedd49919f55d0b07c2d1451">
+				<Properties>
+					<string name="Name">NewGame</string>
+				</Properties>
+				<Item class="Folder" referent="RBX55fe1e1442ff4ff39026704a9c797d2f">
+					<Properties>
+						<string name="Name">Server</string>
+					</Properties>
+					<Item class="Folder" referent="RBX8c6408d1fb024f2a8a294fda5fb696bc">
+						<Properties>
+							<string name="Name">References</string>
+						</Properties>
+						<Item class="ObjectValue" referent="RBXb3b15ce1e06143048fd05c8f57ef1e57">
+							<Properties>
+								<Ref name="Value">runtime</Ref>
+								<string name="Name">Catwork</string>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Folder" referent="RBX015d039a6bc4401985b75118f2211eca">
+						<Properties>
+							<string name="Name">Services</string>
+						</Properties>
+						<Item class="ModuleScript" referent="RBXbfac965e0ee9421e88301c534bf7ddbe">
+							<Properties>
+								<ProtectedString name="Source"><![CDATA[{defaultservice}]]></ProtectedString>
+								<string name="Name">Service1</string>
+							</Properties>
+						</Item>
+					</Item>
+				</Item>
+				<Item class="Folder" referent="RBXd6f5d62dcf014cf797e3ee97cf809a97">
+					<Properties>
+						<string name="Name">Shared</string>
+					</Properties>
+					<Item class="Folder" referent="RBX7e714e3c73284a99b7636e5a47d25d5b">
+						<Properties>
+							<string name="Name">Services</string>
+						</Properties>
+						<Item class="ModuleScript" referent="RBX8d048a31cbd1494e9a50dfaf676d4882">
+							<Properties>
+								<ProtectedString name="Source"><![CDATA[{defaultservice}]]></ProtectedString>
+								<string name="Name">Service1</string>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Folder" referent="RBX5416e32393d449b790c9a9a354f9e679">
+						<Properties>
+							<string name="Name">References</string>
+						</Properties>
+						<Item class="ObjectValue" referent="RBXc147e4d7ac464dca84d7511b7c664aa1">
+							<Properties>
+								<Ref name="Value">runtime</Ref>
+								<string name="Name">Catwork</string>
+							</Properties>
+						</Item>
+					</Item>
+				</Item>
+			</Item>
+		</Item>
+	</Item>
+	<SharedStrings>
+		<SharedString md5="yuZpQdnvvUBOTYh1jqZ2cA=="></SharedString>
+	</SharedStrings>
+</roblox>
